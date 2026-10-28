@@ -30,3 +30,5 @@ The application will be developed incrementally, with each feature implemented, 
 ## Project Status
 
 Initial repository setup.
+
+Development workflow: feature branches, commits, and pull requests
