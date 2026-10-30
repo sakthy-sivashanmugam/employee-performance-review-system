@@ -1,10 +1,11 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import StringConstraints
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.schemas.review import ReviewCreate, ReviewRead
+from app.schemas.review import ReviewCreate, ReviewRead, ReviewRegisterItem
 from app.services import review_service
 from app.services.review_service import (
     ReferenceNotFoundError,
@@ -16,6 +17,17 @@ from app.services.review_service import (
 router = APIRouter(prefix="/reviews", tags=["reviews"])
 
 DbSession = Annotated[Session, Depends(get_db)]
+Department = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=100)]
+
+
+@router.get("", response_model=list[ReviewRegisterItem])
+def list_reviews(
+    db: DbSession,
+    employee_id: Annotated[int | None, Query(gt=0)] = None,
+    review_period_id: Annotated[int | None, Query(gt=0)] = None,
+    department: Annotated[Department | None, Query()] = None,
+):
+    return review_service.list_reviews(db, employee_id, review_period_id, department)
 
 
 @router.post("", response_model=ReviewRead, status_code=201)
