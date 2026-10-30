@@ -22,8 +22,8 @@ def sqlite_metadata() -> MetaData:
 
 
 @pytest.fixture
-def client():
-    """A test client backed by an in-memory SQLite database, never the real PostgreSQL one."""
+def engine():
+    """An in-memory SQLite database, never the real PostgreSQL one."""
     engine = create_engine(
         "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
     )
@@ -33,6 +33,12 @@ def client():
         dbapi_connection.execute("PRAGMA foreign_keys=ON")
 
     sqlite_metadata().create_all(engine)
+    return engine
+
+
+@pytest.fixture
+def client(engine):
+    """A test client whose API uses the in-memory database."""
 
     def override_get_db():
         with Session(engine) as session:
