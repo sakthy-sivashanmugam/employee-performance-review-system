@@ -23,6 +23,24 @@ class ReviewCreate(BaseModel):
     comments: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
 
 
+class ReviewRegisterItem(BaseModel):
+    """One row of the review register: a review plus the employee and period names."""
+
+    id: int
+    employee_id: int
+    employee_code: str
+    employee_name: str
+    department: str
+    review_period_id: int
+    review_period_name: str
+    quality_of_work: int
+    delivery_ownership: int
+    teamwork_collaboration: int
+    average_rating: float
+    comments: str
+    submitted_at: datetime
+
+
 class ReviewRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

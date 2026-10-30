@@ -309,8 +309,9 @@ def test_submitted_reviews_cannot_be_changed_or_deleted(ready, method):
     assert ready.get(f"/api/reviews/{submitted['id']}").json() == submitted
 
 
-def test_only_post_and_get_review_routes_exist(ready):
+def test_no_route_can_change_or_delete_a_submitted_review(ready):
     paths = ready.get("/openapi.json").json()["paths"]
 
-    assert sorted(paths["/api/reviews"]) == ["post"]
+    # The collection supports listing (the register) and submitting; a single review is read-only.
+    assert sorted(paths["/api/reviews"]) == ["get", "post"]
     assert sorted(paths["/api/reviews/{review_id}"]) == ["get"]
