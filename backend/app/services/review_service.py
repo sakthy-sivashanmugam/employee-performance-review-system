@@ -1,6 +1,6 @@
 from decimal import ROUND_HALF_UP, Decimal
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -28,6 +28,46 @@ def calculate_average(quality_of_work: int, delivery_ownership: int, teamwork_co
     """
     total = quality_of_work + delivery_ownership + teamwork_collaboration
     return (Decimal(total) / Decimal(3)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+
+def list_reviews(
+    db: Session,
+    employee_id: int | None = None,
+    review_period_id: int | None = None,
+    department: str | None = None,
+) -> list[dict]:
+    """The review register: every submitted review, newest first, with employee and period names.
+
+    One joined query, so there is no per-row lookup. Filters are combined with AND, and a
+    filter that matches nothing simply gives an empty list.
+    """
+    query = (
+        select(
+            PerformanceReview.id,
+            PerformanceReview.employee_id,
+            Employee.employee_code,
+            Employee.name.label("employee_name"),
+            Employee.department,
+            PerformanceReview.review_period_id,
+            ReviewPeriod.name.label("review_period_name"),
+            PerformanceReview.quality_of_work,
+            PerformanceReview.delivery_ownership,
+            PerformanceReview.teamwork_collaboration,
+            PerformanceReview.average_rating,
+            PerformanceReview.comments,
+            PerformanceReview.submitted_at,
+        )
+        .join(Employee, PerformanceReview.employee_id == Employee.id)
+        .join(ReviewPeriod, PerformanceReview.review_period_id == ReviewPeriod.id)
+        .order_by(PerformanceReview.submitted_at.desc(), PerformanceReview.id.desc())
+    )
+    if employee_id is not None:
+        query = query.where(PerformanceReview.employee_id == employee_id)
+    if review_period_id is not None:
+        query = query.where(PerformanceReview.review_period_id == review_period_id)
+    if department is not None:
+        query = query.where(func.lower(Employee.department) == department.lower())
+    return [dict(row) for row in db.execute(query).mappings()]
 
 
 def get_review(db: Session, review_id: int) -> PerformanceReview:
