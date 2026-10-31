@@ -4,6 +4,8 @@ import { AddEmployeePage } from './features/employees/AddEmployeePage'
 import { EmployeesPage } from './features/employees/EmployeesPage'
 import { ComingSoonPage } from './features/placeholders/ComingSoonPage'
 import { SubmitReviewPreviewPage } from './features/placeholders/SubmitReviewPreviewPage'
+import { AddReviewPeriodPage } from './features/reviewPeriods/AddReviewPeriodPage'
+import { ReviewPeriodsPage } from './features/reviewPeriods/ReviewPeriodsPage'
 import { AppShell } from './layout/AppShell'
 
 /** All screens. Every page sits inside AppShell (header and sidebar). */
@@ -14,16 +16,8 @@ export function AppRoutes() {
         <Route index element={<DashboardPage />} />
         <Route path="employees" element={<EmployeesPage />} />
         <Route path="employees/new" element={<AddEmployeePage />} />
-        <Route
-          path="review-periods"
-          element={<ComingSoonPage title="Review Periods" description="Manage review periods." />}
-        />
-        <Route
-          path="review-periods/new"
-          element={
-            <ComingSoonPage title="Create Review Period" description="Set up a new review period." />
-          }
-        />
+        <Route path="review-periods" element={<ReviewPeriodsPage />} />
+        <Route path="review-periods/new" element={<AddReviewPeriodPage />} />
         <Route
           path="review-register"
           element={

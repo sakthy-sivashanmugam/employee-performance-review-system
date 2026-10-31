@@ -1,8 +1,12 @@
-import { useEffect, useState, type ReactNode } from 'react'
-import { Alert, Box, Button, Card, CardContent, Skeleton, Stack, Typography, useMediaQuery } from '@mui/material'
+import { useState } from 'react'
+import { Button, Stack, Typography, useMediaQuery } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import AddIcon from '@mui/icons-material/Add'
-import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom'
+import { Link as RouterLink } from 'react-router-dom'
+import { FlashNotice } from '../../components/FlashNotice'
+import { ListLoadingCard } from '../../components/ListLoadingCard'
+import { LoadErrorAlert } from '../../components/LoadErrorAlert'
+import { MessageCard } from '../../components/MessageCard'
 import { PageHeader } from '../../layout/PageHeader'
 import type { Employee } from '../../types/api'
 import { EmployeeCards } from './EmployeeCards'
@@ -10,15 +14,6 @@ import { EmployeeFilters } from './EmployeeFilters'
 import { EmployeeTable } from './EmployeeTable'
 import { filterEmployees, type StatusFilter } from './filterEmployees'
 import { useEmployees } from './useEmployees'
-
-const visuallyHidden = {
-  position: 'absolute',
-  width: 1,
-  height: 1,
-  overflow: 'hidden',
-  clip: 'rect(0 0 0 0)',
-  whiteSpace: 'nowrap',
-} as const
 
 function AddEmployeeButton() {
   return (
@@ -28,45 +23,10 @@ function AddEmployeeButton() {
   )
 }
 
-function LoadingState() {
-  return (
-    <Card aria-busy="true">
-      <CardContent>
-        <Box role="status" sx={visuallyHidden}>
-          Loading employees…
-        </Box>
-        <Stack spacing={1.5}>
-          {Array.from({ length: 5 }, (_, index) => (
-            <Skeleton key={index} variant="rounded" height={44} />
-          ))}
-        </Stack>
-      </CardContent>
-    </Card>
-  )
-}
-
-function MessageCard({ children }: { children: ReactNode }) {
-  return (
-    <Card>
-      <CardContent sx={{ textAlign: 'center', py: 5 }}>{children}</CardContent>
-    </Card>
-  )
-}
-
 export function EmployeesPage() {
   const { state, reload } = useEmployees()
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<StatusFilter>('All')
-
-  // A message sent by the previous screen (for example "Chris Bell (EMP106) was added."). It is
-  // read once and then removed from the history entry, so refreshing the page does not repeat it.
-  const location = useLocation()
-  const navigate = useNavigate()
-  const incomingNotice = (location.state as { notice?: string } | null)?.notice
-  const [notice, setNotice] = useState<string | null>(incomingNotice ?? null)
-  useEffect(() => {
-    if (incomingNotice) navigate(location.pathname, { replace: true, state: null })
-  }, [incomingNotice, location.pathname, navigate])
 
   // A table needs room: with the sidebar open it only fits from the "lg" width up. Narrower
   // screens (tablets and phones) get cards, so the page never scrolls sideways.
@@ -82,25 +42,12 @@ export function EmployeesPage() {
     <Stack spacing={{ xs: 2, md: 3 }}>
       <PageHeader title="Employees" description="Manage employee records." actions={<AddEmployeeButton />} />
 
-      {notice && (
-        <Alert severity="success" role="status" onClose={() => setNotice(null)}>
-          {notice}
-        </Alert>
-      )}
+      <FlashNotice />
 
-      {state.status === 'loading' && <LoadingState />}
+      {state.status === 'loading' && <ListLoadingCard label="Loading employees…" />}
 
       {state.status === 'error' && (
-        <Alert
-          severity="error"
-          action={
-            <Button color="inherit" size="small" onClick={reload}>
-              Retry
-            </Button>
-          }
-        >
-          The employees could not be loaded. {state.error.message}
-        </Alert>
+        <LoadErrorAlert subject="The employees" message={state.error.message} onRetry={reload} />
       )}
 
       {state.status === 'success' && (

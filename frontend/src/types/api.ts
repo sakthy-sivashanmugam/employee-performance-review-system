@@ -24,6 +24,13 @@ export interface NewEmployee {
   email: string
 }
 
+/** POST /api/review-periods body. Dates are ISO text (YYYY-MM-DD). New periods are always Open. */
+export interface NewReviewPeriod {
+  name: string
+  start_date: string
+  end_date: string
+}
+
 /** GET /api/review-periods. Dates are ISO text (YYYY-MM-DD). */
 export interface ReviewPeriod {
   id: number
