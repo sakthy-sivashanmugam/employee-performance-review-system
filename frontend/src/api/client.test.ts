@@ -173,3 +173,65 @@ describe('createEmployee', () => {
     expect(init).not.toHaveProperty('body')
   })
 })
+
+describe('review API functions', () => {
+  it('lists only Active employees and only Open periods, using the backend status filter', async () => {
+    const fetchMock = vi.fn().mockImplementation(async () => jsonResponse([]))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const { listActiveEmployees } = await import('./employees')
+    const { listOpenReviewPeriods } = await import('./reviewPeriods')
+    await listActiveEmployees()
+    await listOpenReviewPeriods()
+
+    expect(fetchMock.mock.calls.map((call) => call[0])).toEqual([
+      '/api/employees?status=Active',
+      '/api/review-periods?status=Open',
+    ])
+    for (const [, init] of fetchMock.mock.calls as [string, RequestInit][]) {
+      expect(init).not.toHaveProperty('method')
+      expect(init).not.toHaveProperty('body')
+    }
+  })
+
+  it('posts exactly the six review fields, with no average and no time', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ id: 1, average_rating: 4.33 }, 201))
+    vi.stubGlobal('fetch', fetchMock)
+    const data = {
+      employee_id: 1,
+      review_period_id: 2,
+      quality_of_work: 4,
+      delivery_ownership: 5,
+      teamwork_collaboration: 4,
+      comments: 'Strong quarter.',
+    }
+
+    const { createReview } = await import('./reviews')
+    await expect(createReview(data)).resolves.toMatchObject({ average_rating: 4.33 })
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    expect(url).toBe('/api/reviews')
+    expect(init.method).toBe('POST')
+    expect(JSON.parse(init.body as string)).toEqual(data)
+    expect(Object.keys(JSON.parse(init.body as string)).sort()).toEqual([
+      'comments',
+      'delivery_ownership',
+      'employee_id',
+      'quality_of_work',
+      'review_period_id',
+      'teamwork_collaboration',
+    ])
+  })
+
+  it('reads the business-rule messages of a review conflict as plain messages, not field errors', async () => {
+    const detail = "Employee EMP101 already has a review for '2026 H2'"
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({ detail }, 409)))
+
+    const { createReview } = await import('./reviews')
+    const error = (await createReview({} as never).catch((e: unknown) => e)) as ApiError
+
+    expect(error.status).toBe(409)
+    expect(error.message).toBe(detail)
+    expect(error.fieldErrors).toEqual({}) // it names no form field
+  })
+})
