@@ -15,5 +15,8 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: './src/test/setup.ts',
+    // The default is 5 seconds. The form tests type many characters and then navigate, which takes
+    // 2-3 seconds alone and can pass 5 when many test files run at once on a busy machine.
+    testTimeout: 20000,
   },
 })
