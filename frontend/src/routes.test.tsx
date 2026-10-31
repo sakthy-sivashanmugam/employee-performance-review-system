@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { App } from './App'
@@ -61,24 +61,12 @@ describe('application routes', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Submit Review' })).toBeInTheDocument()
   })
 
-  it('previews the three star ratings on the Submit Review page without sending anything', async () => {
-    renderApp('/reviews/new')
+  it('explains on the Submit Review page when there is nobody to review and no open period', async () => {
+    renderApp('/reviews/new') // the stubbed API returns empty lists
 
-    for (const criterion of ['Quality of Work', 'Delivery & Ownership', 'Teamwork & Collaboration']) {
-      expect(await screen.findByRole('group', { name: criterion })).toBeInTheDocument()
-    }
-    // 3 criteria x 5 stars (each group also has a hidden "Empty" radio while it has no rating).
-    const stars = (screen.getAllByRole('radio') as HTMLInputElement[]).filter((radio) => radio.value !== '')
-    expect(stars).toHaveLength(15)
-
-    // fireEvent: see StarRating.test.tsx for why a simulated pointer move cannot be used in jsdom.
-    const quality = screen.getByRole('group', { name: 'Quality of Work' })
-    fireEvent.click(quality.querySelector('input[value="4"]') as HTMLInputElement)
-
-    expect(quality).toHaveTextContent('4 / 5')
-    expect(screen.getByRole('group', { name: 'Delivery & Ownership' })).toHaveTextContent('Not rated')
-    // Nothing is submitted, and no average is shown or calculated on this page.
-    expect(fetch).not.toHaveBeenCalled()
-    expect(screen.queryByText(/average rating:/i)).not.toBeInTheDocument()
+    expect(await screen.findByText('There are no active employees to review')).toBeInTheDocument()
+    expect(screen.getByText('There is no open review period')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Go to Employees' })).toHaveAttribute('href', '/employees')
+    expect(screen.queryByRole('form', { name: 'Submit review' })).not.toBeInTheDocument()
   })
 })
