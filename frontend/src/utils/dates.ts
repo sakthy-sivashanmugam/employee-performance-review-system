@@ -11,7 +11,9 @@ function parseIsoDate(isoDate: string): Date {
   return new Date(year, month - 1, day)
 }
 
-const dateFormat = new Intl.DateTimeFormat(undefined, {
+// Always Australian style ("1 Jul 2026"), whatever language the browser is set to, so every
+// screen shows dates the same way. Change the locale here to change it everywhere.
+const dateFormat = new Intl.DateTimeFormat('en-AU', {
   day: 'numeric',
   month: 'short',
   year: 'numeric',
