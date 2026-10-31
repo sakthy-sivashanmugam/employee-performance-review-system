@@ -3,7 +3,6 @@ import {
   FORM_FIELDS,
   messagesFromServer,
   toNewEmployee,
-  trimLikeBackend,
   validateEmployeeForm,
   validateField,
   type EmployeeFormValues,
@@ -177,51 +176,27 @@ describe('messagesFromServer', () => {
   })
 })
 
-describe('trimLikeBackend', () => {
-  it('removes the whitespace the backend removes from both ends', () => {
-    // space, tab, newline, no-break space, em space, next-line (U+0085), ideographic space
-    expect(trimLikeBackend(' \t\n  \u0085　EMP1　\u0085  \n\t ')).toBe('EMP1')
-  })
-
-  it('keeps spaces inside the text', () => {
-    expect(trimLikeBackend('  Mary  Jane  ')).toBe('Mary  Jane')
-  })
-
-  it('does not strip U+FEFF (byte-order mark), unlike JavaScript trim(): the backend keeps it', () => {
-    expect(trimLikeBackend('﻿EMP1')).toBe('﻿EMP1')
-    expect('﻿EMP1'.trim()).toBe('EMP1') // the difference this function exists to avoid
-  })
-
-  it('strips U+0085 (next-line), unlike JavaScript trim(): the backend removes it', () => {
-    expect(trimLikeBackend('\u0085EMP1')).toBe('EMP1')
-    expect('\u0085EMP1'.trim()).toBe('\u0085EMP1')
-  })
-
-  it('does not strip invisible characters that are not whitespace', () => {
-    expect(trimLikeBackend('​x​')).toBe('​x​') // zero-width space
-  })
-
-  it('returns an empty string for text that is only whitespace', () => {
-    expect(trimLikeBackend(' \u0085　 ')).toBe('')
-  })
-})
-
 describe('whitespace that JavaScript and the backend treat differently', () => {
   // Found by comparing this form's decisions with the real backend's on 70 tricky inputs.
+  // The characters are built from code points because they are invisible in source code.
+  const NEXT_LINE = String.fromCodePoint(0x0085) // the backend strips it; JavaScript trim() does not
+  const BYTE_ORDER_MARK = String.fromCodePoint(0xfeff) // JavaScript trim() strips it; the backend does not
+
   it('judges a code the way the backend does', () => {
-    expect(validateField('employee_code', '\u0085EMP1')).toBeUndefined() // backend accepts
-    expect(validateField('employee_code', '﻿EMP1')).toBe('Use EMP followed by digits, for example EMP106.') // backend rejects
+    expect(validateField('employee_code', `${NEXT_LINE}EMP1`)).toBeUndefined() // backend accepts
+    expect(validateField('employee_code', `${BYTE_ORDER_MARK}EMP1`)).toBe(
+      'Use EMP followed by digits, for example EMP106.', // backend rejects
+    )
   })
 
   it('judges a required value the way the backend does', () => {
-    expect(validateField('name', '\u0085')).toBe('Name is required.') // backend: empty after stripping
-    expect(validateField('name', '﻿')).toBeUndefined() // backend: not whitespace, so present
+    expect(validateField('name', NEXT_LINE)).toBe('Name is required.') // backend: empty after stripping
+    expect(validateField('name', BYTE_ORDER_MARK)).toBeUndefined() // backend: not whitespace, so present
   })
 
   it('sends values with the same characters removed as the backend would remove', () => {
-    expect(toNewEmployee({ ...valid, employee_code: '\u0085EMP106\u0085', name: '﻿Chris' })).toMatchObject({
-      employee_code: 'EMP106',
-      name: '﻿Chris',
-    })
+    expect(
+      toNewEmployee({ ...valid, employee_code: `${NEXT_LINE}EMP106${NEXT_LINE}`, name: `${BYTE_ORDER_MARK}Chris` }),
+    ).toMatchObject({ employee_code: 'EMP106', name: `${BYTE_ORDER_MARK}Chris` })
   })
 })

@@ -1,6 +1,6 @@
 import { useRef, useState, type FormEvent } from 'react'
-import { Alert, Box, Button, Card, CardContent, CircularProgress, Stack, TextField, Typography } from '@mui/material'
-import { Link as RouterLink } from 'react-router-dom'
+import { Alert, Card, CardContent, Stack, TextField, Typography } from '@mui/material'
+import { FormActions } from '../../components/FormActions'
 import type { NewEmployee } from '../../types/api'
 import {
   EMPTY_FORM,
@@ -130,28 +130,7 @@ export function EmployeeForm({ onSubmit }: EmployeeFormProps) {
             New employees start as Active.
           </Typography>
 
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: { xs: 'column-reverse', sm: 'row' },
-              justifyContent: 'flex-end',
-              gap: 1.5,
-            }}
-          >
-            <Button component={RouterLink} to="/employees" variant="outlined" sx={{ width: { xs: '100%', sm: 'auto' } }}>
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={submitting}
-              aria-busy={submitting}
-              startIcon={submitting ? <CircularProgress size={18} color="inherit" /> : undefined}
-              sx={{ width: { xs: '100%', sm: 'auto' } }}
-            >
-              {submitting ? 'Adding…' : 'Add Employee'}
-            </Button>
-          </Box>
+          <FormActions cancelTo="/employees" submitLabel="Add Employee" submittingLabel="Adding…" submitting={submitting} />
         </Stack>
       </CardContent>
     </Card>

@@ -1,4 +1,5 @@
 import type { NewEmployee } from '../../types/api'
+import { characterCount, trimLikeBackend } from '../../utils/backendText'
 
 export interface EmployeeFormValues {
   employee_code: string
@@ -33,22 +34,6 @@ const LABEL: Record<EmployeeFormField, string> = {
 // Exactly the backend's rule: EMP followed by digits (and only 0-9, not other kinds of digit).
 const EMPLOYEE_CODE_PATTERN = /^EMP[0-9]+$/
 
-/** Counts characters the way the backend does (one per character, even for emoji). */
-function length(text: string): number {
-  return Array.from(text).length
-}
-
-// The characters the backend strips from both ends of text: the Unicode "White_Space" property.
-// JavaScript's own trim() is slightly different (it also strips U+FEFF and not U+0085), so using
-// it would make the form disagree with the backend on those two rare characters.
-const BACKEND_WHITESPACE = '\\t-\\r \\u0085\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000'
-const EDGE_WHITESPACE = new RegExp(`^[${BACKEND_WHITESPACE}]+|[${BACKEND_WHITESPACE}]+$`, 'g')
-
-/** Removes spaces from both ends of a value exactly as the backend does. */
-export function trimLikeBackend(text: string): string {
-  return text.replace(EDGE_WHITESPACE, '')
-}
-
 /**
  * Checks one field the way the backend will. Surrounding spaces are ignored, as on the backend,
  * and there is deliberately no email format check: the backend only requires an email to be
@@ -60,7 +45,7 @@ export function validateField(field: EmployeeFormField, value: string): string |
   if (field === 'employee_code' && !EMPLOYEE_CODE_PATTERN.test(text)) {
     return 'Use EMP followed by digits, for example EMP106.'
   }
-  if (length(text) > MAX_LENGTH[field]) {
+  if (characterCount(text) > MAX_LENGTH[field]) {
     return `${LABEL[field]} must be ${MAX_LENGTH[field]} characters or fewer.`
   }
   return undefined
