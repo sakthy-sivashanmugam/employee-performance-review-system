@@ -40,6 +40,34 @@ export interface ReviewPeriod {
   status: ReviewPeriodStatus
 }
 
+/**
+ * POST /api/reviews body. There is no average and no submission time: the backend calculates the
+ * average from the three ratings and sets the time itself. Ratings are whole numbers from 1 to 5.
+ */
+export interface NewReview {
+  employee_id: number
+  review_period_id: number
+  quality_of_work: number
+  delivery_ownership: number
+  teamwork_collaboration: number
+  comments: string
+}
+
+/** POST /api/reviews response: the stored review. */
+export interface Review {
+  id: number
+  employee_id: number
+  review_period_id: number
+  quality_of_work: number
+  delivery_ownership: number
+  teamwork_collaboration: number
+  /** Calculated by the backend; the frontend never submits it. */
+  average_rating: number
+  comments: string
+  /** ISO timestamp with time zone. */
+  submitted_at: string
+}
+
 /** GET /api/reviews: one row of the review register, newest first. */
 export interface ReviewRegisterItem {
   id: number

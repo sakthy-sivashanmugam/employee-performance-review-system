@@ -3,9 +3,9 @@ import { DashboardPage } from './features/dashboard/DashboardPage'
 import { AddEmployeePage } from './features/employees/AddEmployeePage'
 import { EmployeesPage } from './features/employees/EmployeesPage'
 import { ComingSoonPage } from './features/placeholders/ComingSoonPage'
-import { SubmitReviewPreviewPage } from './features/placeholders/SubmitReviewPreviewPage'
 import { AddReviewPeriodPage } from './features/reviewPeriods/AddReviewPeriodPage'
 import { ReviewPeriodsPage } from './features/reviewPeriods/ReviewPeriodsPage'
+import { SubmitReviewPage } from './features/reviews/SubmitReviewPage'
 import { AppShell } from './layout/AppShell'
 
 /** All screens. Every page sits inside AppShell (header and sidebar). */
@@ -24,7 +24,7 @@ export function AppRoutes() {
             <ComingSoonPage title="Review Register" description="View and filter submitted reviews." />
           }
         />
-        <Route path="reviews/new" element={<SubmitReviewPreviewPage />} />
+        <Route path="reviews/new" element={<SubmitReviewPage />} />
         <Route
           path="*"
           element={<ComingSoonPage title="Page not found" description="This page does not exist." />}
