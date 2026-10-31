@@ -1,8 +1,8 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Alert, Box, Button, Card, CardContent, Skeleton, Stack, Typography, useMediaQuery } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import AddIcon from '@mui/icons-material/Add'
-import { Link as RouterLink } from 'react-router-dom'
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom'
 import { PageHeader } from '../../layout/PageHeader'
 import type { Employee } from '../../types/api'
 import { EmployeeCards } from './EmployeeCards'
@@ -58,6 +58,16 @@ export function EmployeesPage() {
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<StatusFilter>('All')
 
+  // A message sent by the previous screen (for example "Chris Bell (EMP106) was added."). It is
+  // read once and then removed from the history entry, so refreshing the page does not repeat it.
+  const location = useLocation()
+  const navigate = useNavigate()
+  const incomingNotice = (location.state as { notice?: string } | null)?.notice
+  const [notice, setNotice] = useState<string | null>(incomingNotice ?? null)
+  useEffect(() => {
+    if (incomingNotice) navigate(location.pathname, { replace: true, state: null })
+  }, [incomingNotice, location.pathname, navigate])
+
   // A table needs room: with the sidebar open it only fits from the "lg" width up. Narrower
   // screens (tablets and phones) get cards, so the page never scrolls sideways.
   const theme = useTheme()
@@ -71,6 +81,12 @@ export function EmployeesPage() {
   return (
     <Stack spacing={{ xs: 2, md: 3 }}>
       <PageHeader title="Employees" description="Manage employee records." actions={<AddEmployeeButton />} />
+
+      {notice && (
+        <Alert severity="success" role="status" onClose={() => setNotice(null)}>
+          {notice}
+        </Alert>
+      )}
 
       {state.status === 'loading' && <LoadingState />}
 

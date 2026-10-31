@@ -1,5 +1,6 @@
 import { Route, Routes } from 'react-router-dom'
 import { DashboardPage } from './features/dashboard/DashboardPage'
+import { AddEmployeePage } from './features/employees/AddEmployeePage'
 import { EmployeesPage } from './features/employees/EmployeesPage'
 import { ComingSoonPage } from './features/placeholders/ComingSoonPage'
 import { SubmitReviewPreviewPage } from './features/placeholders/SubmitReviewPreviewPage'
@@ -12,10 +13,7 @@ export function AppRoutes() {
       <Route element={<AppShell />}>
         <Route index element={<DashboardPage />} />
         <Route path="employees" element={<EmployeesPage />} />
-        <Route
-          path="employees/new"
-          element={<ComingSoonPage title="Add Employee" description="Create a new employee record." />}
-        />
+        <Route path="employees/new" element={<AddEmployeePage />} />
         <Route
           path="review-periods"
           element={<ComingSoonPage title="Review Periods" description="Manage review periods." />}

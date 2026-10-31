@@ -16,6 +16,14 @@ export interface Employee {
   status: EmployeeStatus
 }
 
+/** POST /api/employees body. There is no status: the backend always creates Active employees. */
+export interface NewEmployee {
+  employee_code: string
+  name: string
+  department: string
+  email: string
+}
+
 /** GET /api/review-periods. Dates are ISO text (YYYY-MM-DD). */
 export interface ReviewPeriod {
   id: number
